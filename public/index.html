@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>FSE Chat Room</title>
+<link rel="stylesheet" href="/stylesheets/main.css">
+</head>
+
+<body> 
+     <div id="nickWrap">
+      <h1>Welcome to FSE Chat Room</h1>
+      <p><b>Enter a username:</b></p><br/>
+	  <p id="nickError"></p>
+	    <form id="setNick">
+		 <input size="35" id="nickname"></input>
+		 <br/>
+		 <br/>
+		 <input name ="submitNick" type="submit" id ="submitNick" value="SUBMIT"></input>
+	    </form>
+     </div>
+
+<div id="contentWrap">
+	<div id="wrapper"> 
+		<div id="chat-head" align="left">FSE Chat Room
+		   <div id="close">X</div>	 
+		 </div> 
+		   
+		<div id="chatbox"></div>
+		 
+		<form id="message" name="message" action="">
+			<textarea name="usermsg" id="usermsg" maxlength="300" autofocus></textarea>
+			<br/>
+			<div id="chat-footer">
+			<input name="submitmsg" type="submit"  id="submitmsg" value="POST" />
+			</div>
+		</form>
+	</div>	
+</div>
+
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    jQuery(function($){
+	   var socket = io.connect();
+	   var $nickForm = $('#setNick');
+	   var $nickError = $('#nickError');
+	   var $nickBox = $('#nickname');
+	   var $users = $('#users');
+	   var $messageForm = $('#message');
+	   var $messageBox = $('#usermsg');
+	   var $chatbox = $('#chatbox');
+	   
+	   $nickForm.submit(function(e){
+	   e.preventDefault();
+	   socket.emit('new user', $nickBox.val(),function(data){
+	     if(data){
+		   $('#nickWrap').hide();
+		   $('#contentWrap').show();
+		 } else{
+		   $nickError.html('Sorry that username is already taken! Please try again.');
+		 }
+	   });
+	   $nickBox.val('');
+	   });
+	   
+	   socket.on('usernames', function(data){
+				var html = '';
+				for( var i=0; i < data.length; i++){
+					html += data[i] + '<br/>'
+				}
+				$users.html(html);
+			});
+
+	   
+	   $messageForm.submit(function(e){
+	     e.preventDefault();
+		 socket.emit('send message', $messageBox.val());
+		 $messageBox.val('');
+	   });
+	   
+        socket.on('load old msgs', function(rows){
+		  for (var i=0;i < rows.length; i++){
+		    displayMsg(rows[i]);
+		  }
+		});
+		
+	    socket.on('new message', function(data){
+	       displayMsg(data);
+	   });
+	   
+	   function displayMsg(data){
+	     $chatbox.append('<b>' + data.nick +  '</b>' );
+		 $chatbox.append('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+		 $chatbox.append(data.time + '<br/><br/>' + data.msg + "<br/><br/>");
+		 $chatbox.append('<div style="border:1px solid white"></div><br/>');
+	   }
+	});
+</script>
+</body>
+</html>

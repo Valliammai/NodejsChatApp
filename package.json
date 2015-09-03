@@ -1,0 +1,10 @@
+{
+  "name":"chatapp",
+  "version":"0.0.1",
+  "private":"true",
+  "dependencies":{
+     "socket.io":"1.3.6",
+	 "express":"4.13.3",
+	 "sqlite3":"3.0.10"
+	 }
+}
